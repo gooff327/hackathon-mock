@@ -1,7 +1,10 @@
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
+const path = require('path')
 import createModel from "./models";
-const adapter = new FileSync('./src/database/db.json', {
+
+console.log()
+const adapter = new FileSync(path.resolve() + '/src/database/db.json', {
     serialize: (data) => JSON.stringify(data),
     deserialize: (data) => JSON.parse(data)
 })
