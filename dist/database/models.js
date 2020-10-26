@@ -1,0 +1,60 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const nanoid_1 = require("nanoid");
+const createModel = (db, table) => ({
+    findOne(filter = {}) {
+        if (!filter) {
+            return db.get(table)
+                .head()
+                .value();
+        }
+        return db.get(table)
+            .find(filter)
+            .value();
+    },
+    findMany: (filter = {}) => {
+        if (!filter) {
+            return db.get(table)
+                .orderBy(['createdAt'], ['desc'])
+                .value();
+        }
+        return db.get(table)
+            .find(filter)
+            .orderBy(['createdAt'], ['desc'])
+            .value();
+    },
+    updateOne: (filter, update) => {
+        const match = db.get(table)
+            .find(filter)
+            .value();
+        db.get(table)
+            .find(filter)
+            .assign(update)
+            .write();
+        return db.get(table)
+            .find({ id: match.id })
+            .value();
+    },
+    remove: (filter) => {
+        return db.get(table)
+            .remove(filter)
+            .write();
+    },
+    createOne: (fields) => {
+        const item = Object.assign(Object.assign({}, fields), { createdAt: Date.now(), id: nanoid_1.nanoid(1) });
+        db.get(table)
+            .push(item)
+            .write();
+        return db.get(table).find({ id: item.id }).value();
+    },
+    createMany: (toCreate) => {
+        const manyToCreate = (Array.isArray(toCreate) ?
+            toCreate :
+            [toCreate]).map(item => (Object.assign(Object.assign({}, item), { createdAt: Date.now(), id: nanoid_1.nanoid(1) })));
+        return db.get(table)
+            .push(...manyToCreate)
+            .write();
+    }
+});
+exports.default = createModel;
+//# sourceMappingURL=models.js.map
