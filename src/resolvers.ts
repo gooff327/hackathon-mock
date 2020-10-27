@@ -14,6 +14,11 @@ const NEW_POST = 'NEW_POST'
 export default {
     Upload: GraphQLUpload,
     Query: {
+        email: async (_, input , {___, models}) => {
+            const user =  models.User.findOne(input)
+            return { ...input, available: !user}
+        },
+
         me: authenticated((_, __, {user}) => {
             return user
         }),

@@ -141,7 +141,13 @@ export default gql`
         limit: Int
         offset: Int
     }
+    
+    type EmailStatus {
+        email: String!
+        available: Boolean!
+    }
     type Query {
+        email(email: String!): EmailStatus!
         me: User!
         posts(input: PostFilter): [Post]!
         post(id: ID!): Post!
