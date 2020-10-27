@@ -26,7 +26,6 @@ export default {
             return user
         }),
         posts: async (_, __, {___, models}) => {
-            console.log(models.Post.findMany())
             return models.Post.findMany()
         },
 
@@ -158,7 +157,6 @@ export default {
         },
         likes(post, _, {models}) {
             const users = post.likes.map(id => models.User.findOne({id}))
-            console.log('user', users, _)
             return post.likes.map(id => models.User.findOne({id}))
         }
     }
