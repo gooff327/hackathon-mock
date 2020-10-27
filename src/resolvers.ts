@@ -42,6 +42,18 @@ export default {
         }
     },
     Mutation: {
+        likeAction:  authenticated((_, {target: id},{user, models})=> {
+            const post = models.Post.findOne({ id })
+
+            const index = post.likes.indexOf(user.id)
+            if (index !== -1){
+                post.likes.splice(index, 1)
+            } else {
+                post.likes.push(user.id)
+            }
+            return models.Post.updateOne({ id }, post)
+            }),
+
         updateSettings: authenticated((_, {input}, {user, models}) =>{
             return models.Settings.updateOne({user: user.id}, input)
         }),
@@ -53,7 +65,6 @@ export default {
             await pubsub.publish(NEW_POST, { newPost: post })
             return post
         }),
-
         updateMe: authenticated((_, {input}, {user, models}) => {
             return models.User.updateOne({id: user.id}, input)
         }),
@@ -144,6 +155,11 @@ export default {
     Post: {
         author(post, _, {models}) {
             return models.User.findOne({id: post.author})
+        },
+        likes(post, _, {models}) {
+            const users = post.likes.map(id => models.User.findOne({id}))
+            console.log('user', users, _)
+            return post.likes.map(id => models.User.findOne({id}))
         }
     }
 }

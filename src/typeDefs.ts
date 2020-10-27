@@ -157,6 +157,7 @@ export default gql`
     }
     scalar Image
     type Mutation {
+        likeAction(target: ID!): Post!
         sendImageToCloud(file: Image!): UploadResponse!
         updateSettings(input: UpdateSettingsInput!): Settings!
         createPost(input: NewPostInput!): Post!
