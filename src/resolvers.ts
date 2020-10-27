@@ -16,7 +16,7 @@ export default {
     Query: {
         email: async (_, input , {___, models}) => {
             const user =  models.User.findOne(input)
-            return { ...input, available: !user}
+            return { ...input, available: !!user}
         },
 
         me: authenticated((_, __, {user}) => {
