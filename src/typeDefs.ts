@@ -26,7 +26,7 @@ export default gql`
         id: ID!
         user: User!
         theme: Theme!
-        setTop: [User]
+        setTop: [PublicUserInfo]
         emailNotification: Boolean!
         pushNotification: Boolean!
     }
