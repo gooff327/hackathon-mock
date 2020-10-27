@@ -54,20 +54,21 @@ export default gql`
         createdAt: String! @formatDate
         updatedAt: String! @formatDate
         isPublic: Boolean!
-        author: User!
+        author: PubicUserInfo!
         likes: [User]
         views: Int
         comments: [Comment]
-        category: [Category]!
+        category: Category!
     }
     type Category {
-        id: ID!
         label: String!
         value: String!
     }
     type PubicUserInfo {
         id: ID!
         name: String!
+        avatar: String!
+        email: String!
     }
     type Comment {
         id: ID!
@@ -115,7 +116,7 @@ export default gql`
         content: String!
         images: [String]!
         isPublic: Boolean!
-        category: [String]!
+        category: String!
     }
     input UpdateUserInput {
         email: String
@@ -154,6 +155,7 @@ export default gql`
         userSettings: Settings!
         feed: [Post]!
         user: User
+        category: [Category]!
     }
     type UploadResponse {
         message: String!

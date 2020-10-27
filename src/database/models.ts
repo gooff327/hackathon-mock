@@ -22,6 +22,11 @@ const createModel = (db: any, table: any) => ({
             .orderBy(['createdAt'], ['desc'])
             .value()
     },
+    findAll: () => {
+        return db.get(table)
+            .orderBy(['createdAt'], ['desc'])
+            .value()
+    },
     updateOne: (filter: {}, update: any) => {
         const match = db.get(table)
             .find(filter)

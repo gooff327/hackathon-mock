@@ -14,6 +14,9 @@ const NEW_POST = 'NEW_POST'
 export default {
     Upload: GraphQLUpload,
     Query: {
+        category: async (_, __, { ___, models }) => {
+            return models.Category.findAll()
+        },
         email: async (_, input , {___, models}) => {
             const user =  models.User.findOne(input)
             return { ...input, available: !!user}
@@ -42,8 +45,10 @@ export default {
             return models.Settings.updateOne({user: user.id}, input)
         }),
 
-        createPost: authenticated(async (_, {input}, {user: {id, name}, models}) => {
-            const post = models.Post.createOne({...input, author: {id, name}})
+        createPost: authenticated(async (_, {input}, {user: {id, name, email, avatar}, models}) => {
+            const { category } = input
+            const fullCategory = models.Category.findOne({ value: category })
+            const post = models.Post.createOne({...input, author: {id, name, email, avatar}, ...fullCategory})
             await pubsub.publish(NEW_POST, { newPost: post })
             return post
         }),
