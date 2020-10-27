@@ -49,7 +49,7 @@ export default {
         createPost: authenticated(async (_, {input}, {user: { id }, models}) => {
             const { category } = input
             const fullCategory = models.Category.findOne({ value: category })
-            const post = models.Post.createOne({...input, author: id, ...fullCategory, likes: [], views: [], comments: []})
+            const post = models.Post.createOne({...input, author: id, ...fullCategory, likes: [], views: 0, comments: []})
             await pubsub.publish(NEW_POST, { newPost: post })
             return post
         }),
