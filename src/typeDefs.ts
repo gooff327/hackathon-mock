@@ -54,7 +54,7 @@ export default gql`
         createdAt: String! @formatDate
         updatedAt: String! @formatDate
         isPublic: Boolean!
-        author: PubicUserInfo!
+        author: PublicUserInfo!
         likes: [User]
         views: Int
         comments: [Comment]
@@ -64,7 +64,7 @@ export default gql`
         label: String!
         value: String!
     }
-    type PubicUserInfo {
+    type PublicUserInfo {
         id: ID!
         name: String!
         avatar: String!
@@ -72,7 +72,7 @@ export default gql`
     }
     type Comment {
         id: ID!
-        author: PubicUserInfo!
+        author: PublicUserInfo!
         target: CommentTarget!
         content: String!
     }
