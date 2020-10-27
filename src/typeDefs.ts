@@ -26,12 +26,12 @@ export default gql`
         id: ID!
         user: User!
         theme: Theme!
-        setTop: [PublicUserInfo]
+        setTop: [User]
         emailNotification: Boolean!
         pushNotification: Boolean!
     }
     type User {
-        id: ID! @log(format: "hello")
+        id: ID!
         email: String!
         avatar: String
         name: String!
@@ -54,7 +54,7 @@ export default gql`
         createdAt: String! @formatDate
         updatedAt: String! @formatDate
         isPublic: Boolean!
-        author: PublicUserInfo!
+        author: User!
         likes: [User]
         views: Int
         comments: [Comment]
@@ -64,15 +64,9 @@ export default gql`
         label: String!
         value: String!
     }
-    type PublicUserInfo {
-        id: ID!
-        name: String!
-        avatar: String!
-        email: String!
-    }
     type Comment {
         id: ID!
-        author: PublicUserInfo!
+        author: User!
         target: CommentTarget!
         content: String!
     }

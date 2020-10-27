@@ -26,6 +26,7 @@ export default {
             return user
         }),
         posts: async (_, __, {___, models}) => {
+            console.log(models.Post.findMany())
             return models.Post.findMany()
         },
 
@@ -45,10 +46,10 @@ export default {
             return models.Settings.updateOne({user: user.id}, input)
         }),
 
-        createPost: authenticated(async (_, {input}, {user: {id, name, email, avatar}, models}) => {
+        createPost: authenticated(async (_, {input}, {user: { id }, models}) => {
             const { category } = input
             const fullCategory = models.Category.findOne({ value: category })
-            const post = models.Post.createOne({...input, author: {id, name, email, avatar}, ...fullCategory})
+            const post = models.Post.createOne({...input, author: id, ...fullCategory})
             await pubsub.publish(NEW_POST, { newPost: post })
             return post
         }),
@@ -62,12 +63,11 @@ export default {
         })),
         signUp(_, {input}, {models, createToken}) {
             const existing = models.User.findOne({email: input.email}) || models.User.findOne({ name: input.name})
-
             if (existing) {
                 throw new AuthenticationError('Username or Email duplicated!')
             }
 
-            const user = models.User.createOne({...input, verified: false , role: 'MEMBER'})
+            const user = models.User.createOne({...input, verified: false , role: 'MEMBER', avatar: input.name})
             const token = createToken(user)
             models.Setting.createOne({user: user.id, theme: 'DARK', emailNotifications: true, pushNotifications: true})
             return {token, user}
