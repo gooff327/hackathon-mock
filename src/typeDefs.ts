@@ -167,8 +167,9 @@ export default gql`
     }
     
     type Posts {
-        data: [Post]!,
+        data: [Post]!
         hasNextPage: Boolean!
+        hasPrevPage: Boolean!
     }
 
     type Query {

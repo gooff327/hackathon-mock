@@ -36,8 +36,8 @@ export default {
             if(filter) {
                 f = { category: filter?.category, content: new RegExp(filter?.keyword), title: new RegExp(filter?.keyword)}
             }
-            const {docs:data, hasNextPage} = await Post.paginate(f, pagination)
-            return { data, hasNextPage }
+            const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, pagination)
+            return { data, hasNextPage, hasPrevPage }
         },
 
         post: authenticated(async (_, {id:_id}, {user, models}) => {
