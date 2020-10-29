@@ -30,8 +30,9 @@ export default {
         me: authenticated((_, __, {user}) => {
             return user
         }),
-        posts: async (_, {input}) => {
-            return { data: await Post.find({}), total: 100 }
+        posts: async (_, {filter, pagination, rank}) => {
+            const {docs:data, hasNextPage} = await Post.paginate({}, pagination)
+            return { data, hasNextPage }
         },
 
         post: authenticated((_, {_id}, {user, models}) => {
@@ -65,7 +66,6 @@ export default {
         }),
 
         createPost: authenticated(async (_, {input}, {user: {_id}}) => {
-            console.log('error')
             const post = new Post({...input, author: _id, likes: [], views: 0, comments: [], createdAt: Date.now()})
             await post.save()
             await pubsub.publish(NEW_POST, { newPost: post })
@@ -133,7 +133,7 @@ export default {
              return { message: 'Failed to save!', res: ''}
          }),
         addComment: authenticated( async (_, {input: { target: _id, content, type, to }}, {user: {_id: uid}})  => {
-            const comment: any = await new Comment({ content, comments: [], author: uid, type, createAt: Date.now(), to })
+            const comment: any = await new Comment({ content, comments: [], replies: [], author: uid, type, createAt: Date.now(), to })
             await comment.save()
             if (type === 'POST') {
                 try {
@@ -145,8 +145,8 @@ export default {
 
             } else {
                 try {
-                    const { comments }:any = await Comment.findOne({ _id })
-                    await Comment.updateOne({_id}, { comments: [...comments, comment._id]})
+                    const { replies }:any = await Comment.findOne({ _id })
+                    await Comment.updateOne({_id}, { replies: [...replies, comment._id]})
                 } catch (e) {
                     throw e
                 }
@@ -160,7 +160,7 @@ export default {
         },
     },
     User: {
-        posts(root, _, {user, models}) {
+        posts(root, _, {user}) {
             if (root._id !== user._id) {
                 throw new AuthenticationError('not your posts')
             }
@@ -187,15 +187,21 @@ export default {
             return post.comments.map(async (_id: any) => await Comment.findOne({_id}))
         }
     },
-    Comment: {
+    Reply: {
         async author(comment) {
             return User.findOne({ _id: comment.author })
-        },
-        comments(comment) {
-            return comment.comments.map(async _id => await Comment.findOne({_id}))
         },
         async to(comment) {
             return User.findOne({ _id: comment.to })
         },
+    },
+    Comment: {
+        async author(comment) {
+            return User.findOne({ _id: comment.author })
+        },
+        replies(comment) {
+            return comment.replies.map(async _id => await Comment.findOne({_id}))
+        },
+
     }
 }

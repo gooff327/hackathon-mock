@@ -7,7 +7,8 @@ const CommentSchema = new Schema({
   type: String,
   createdAt: Date,
   id: String,
-  to: String
+  to: String,
+  replies: Array
 })
 
 const Comment = model('Comment', CommentSchema)

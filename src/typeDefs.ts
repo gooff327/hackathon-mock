@@ -75,8 +75,7 @@ export default gql`
         type: CommentTarget!
         content: String!
         createAt: String !@formatDate
-        comments: [Comment]!
-        to: User!
+        replies: [Reply]!
     }
     
     type Reply {
@@ -149,11 +148,15 @@ export default gql`
         category: String
         hashtag: String
         keyword: String
+    }
+    input Pagination {
+        page: Int!
+        limit: Int!
+    }
+    input Rank {
         rank: Boolean
         sortByDate: Boolean
         sortByDateReverse: Boolean
-        limit: Int
-        offset: Int
     }
     
     type EmailStatus {
@@ -163,12 +166,13 @@ export default gql`
     
     type Posts {
         data: [Post]!,
-        total: Int!
+        hasNextPage: Boolean!
     }
+
     type Query {
         email(email: String!): EmailStatus!
         me: User!
-        posts(input: PostFilter): Posts!
+        posts(filter: PostFilter, pagination: Pagination, rank: Rank): Posts!
         post(id: ID!): Post!
         userSettings: Settings!
         feed: [Post]!
