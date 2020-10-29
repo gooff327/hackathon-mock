@@ -120,7 +120,9 @@ export default {
                              result = {message: err, res: ''}
                              reject(result)
                          } else {
-                             result = {message: 'success', res: body}
+                             let parsed = JSON.parse(body)
+                             console.log('body',JSON.parse(body))
+                             result = {message: 'success', res: parsed?.images||parsed?.data?.url}
                              resolve(result)
                          }
                      })
