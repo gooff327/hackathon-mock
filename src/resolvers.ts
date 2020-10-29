@@ -32,6 +32,13 @@ export default {
             return user
         }),
         posts: async (_, {filter, pagination, rank}) => {
+            let category, keyword
+            let obj = {}
+            if(filter) {
+                obj = { category: filter?.category, content: {$regex: filter?.keyword}}
+                console.log(obj)
+            }
+            const { } = filter
             const {docs:data, hasNextPage} = await Post.paginate({}, pagination)
             return { data, hasNextPage }
         },
@@ -190,6 +197,9 @@ export default {
         },
         comments(post) {
             return post.comments.map(async (_id: any) => await Comment.findOne({_id}))
+        },
+        async category(post) {
+            return Category.findOne({value: post.category});
         }
     },
     Reply: {
@@ -209,4 +219,5 @@ export default {
         },
 
     }
+
 }

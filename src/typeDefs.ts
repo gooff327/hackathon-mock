@@ -145,7 +145,6 @@ export default gql`
 
     input PostFilter {
         category: String
-        hashtag: String
         keyword: String
     }
     input Pagination {
