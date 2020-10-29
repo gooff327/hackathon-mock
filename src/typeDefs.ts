@@ -73,7 +73,7 @@ export default gql`
         author: User!
         type: CommentTarget!
         content: String!
-        createAt: String !@formatDate
+        createdAt: String !@formatDate
         replies: [Reply]!
     }
     
