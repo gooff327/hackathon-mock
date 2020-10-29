@@ -40,15 +40,15 @@ export default {
             return { data, hasNextPage }
         },
 
-        post: authenticated((_, {_id}, {user, models}) => {
-            return models.Post.findOne({_id, author: user._id})
+        post: authenticated(async (_, {id:_id}, {user, models}) => {
+            return Post.findOne({_id})
         }),
 
         userSettings: authenticated((_, __, {user, models}) => {
             return models.Settings.findOne({user: user._id})
         }),
         feed (_, __, {models}) {
-            return models.Post.findMany()
+            return Post.find()
         }
     },
     Mutation: {
@@ -177,7 +177,7 @@ export default {
             return Post.find({author: root._id})
         },
         settings(root, __, {user, models}) {
-            return models.Settings.findOne({_id: root.settings, user: user._id})
+            return Setting.findOne({user: user._id})
         }
     },
     Settings: {
