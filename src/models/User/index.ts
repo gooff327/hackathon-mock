@@ -6,8 +6,8 @@ const UserSchema = new Schema({
   avatar: String,
   name: String,
   verified: Boolean,
-  createdAt: Date,
-  lastLoginAt: String,
+  createdAt: Number,
+  lastLoginAt: Number,
   role: String,
   password: String
 })

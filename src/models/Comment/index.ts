@@ -5,7 +5,7 @@ const CommentSchema = new Schema({
   comments: Array,
   author: String,
   type: String,
-  createdAt: Date,
+  createdAt: Number,
   id: String,
   to: String,
   replies: Array
