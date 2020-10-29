@@ -1,9 +1,14 @@
 import gql from 'graphql-tag'
+import {GraphQLUpload} from "graphql-upload";
 
 export default gql`
     directive @log(format: String) on FIELD_DEFINITION
     directive @formatDate(format: String = "d, MMM, yyyy") on FIELD_DEFINITION
     enum CommentTarget {
+        POST
+        COMMENT
+    }
+    enum LikeTarget {
         POST
         COMMENT
     }
@@ -23,7 +28,7 @@ export default gql`
         CHAT
     }
     type Settings {
-        id: ID!
+        _id: ID!
         user: User!
         theme: Theme!
         setTop: [User]
@@ -31,7 +36,7 @@ export default gql`
         pushNotification: Boolean!
     }
     type User {
-        id: ID!
+        _id: ID!
         email: String!
         avatar: String
         name: String!
@@ -47,7 +52,7 @@ export default gql`
         user: User!
     }
     type Post {
-        id: ID!
+        _id: ID!
         title: String
         content: String
         images: [String]!
@@ -65,14 +70,16 @@ export default gql`
         value: String!
     }
     type Comment {
-        id: ID!
+        _id: ID!
         author: User!
-        target: CommentTarget!
+        type: CommentTarget!
         content: String!
+        comments: [Comment]
+        createAt: String !@formatDate
     }
 
     type Message {
-        id: ID!
+        _id: ID!
         type: MessageType
         author: User!
         target: User!
@@ -122,7 +129,8 @@ export default gql`
         role: Role!
     }
     input CommentInput {
-        pid: ID!
+        target: ID!
+        type: CommentTarget
         content: String
     }
 
@@ -141,10 +149,15 @@ export default gql`
         email: String!
         available: Boolean!
     }
+    
+    type Posts {
+        data: [Post]!,
+        total: Int!
+    }
     type Query {
         email(email: String!): EmailStatus!
         me: User!
-        posts(input: PostFilter): [Post]!
+        posts(input: PostFilter): Posts!
         post(id: ID!): Post!
         userSettings: Settings!
         feed: [Post]!
@@ -153,11 +166,11 @@ export default gql`
     }
     type UploadResponse {
         message: String!
-        res: String!
+        res: String!    
     }
     scalar Image
     type Mutation {
-        likeAction(target: ID!): Post!
+        likeAction(target: ID!, type: LikeTarget): Post!
         sendImageToCloud(file: Image!): UploadResponse!
         updateSettings(input: UpdateSettingsInput!): Settings!
         createPost(input: NewPostInput!): Post!

@@ -1,16 +1,15 @@
 import jwt from "jsonwebtoken"
-import {User} from "./types";
-import db  from "./database";
+import User from "./models/User" ;
+import { User as UserType } from './types'
 import { AuthenticationError } from 'apollo-server'
 const secret = 'go_off'
-const { models } = db
-export const createToken = ({ id, role}: User) => jwt.sign({id, role}, secret)
+export const createToken = ({ email, role}: UserType) => jwt.sign({email, role}, secret)
 
-export const getUserFromToken = (token: string) => {
+export const getUserFromToken = async (token: string) => {
     try {
-        const user: Partial<User> | string = jwt.verify(token, secret)
+        const user: Partial<UserType> | string = jwt.verify(token, secret)
         if (typeof user === "object") {
-            return models.User.findOne({id: user.id})
+            return await User.findOne({email: user.email}).exec()
         }
     } catch (e) {
         return null

@@ -14,13 +14,21 @@
   "dependencies": {
     "@types/jsonwebtoken": "^8.5.0",
     "@types/lowdb": "^1.0.9",
+    "@types/mongoose": "^5.7.36",
     "apollo-server": "^2.15.0",
     "date-fns": "^2.14.0",
+    "fs-capacitor": "^6.2.0",
+    "graphql-upload": "^11.0.0",
     "jsonwebtoken": "^8.5.1",
     "lowdb": "^1.0.0",
+    "mongoose": "^5.10.11",
     "nanoid": "^3.1.10",
     "request": "^2.88.2",
     "shortid": "^2.2.15"
+  },
+  "resolutions": {
+    "**/**/fs-capacitor":"^6.2.0",
+    "**/graphql-upload": "^11.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4",

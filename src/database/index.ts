@@ -11,7 +11,7 @@ const adapter = new FileSync(path.resolve() + '/src/database/db.json', {
 })
 
 const db = low(adapter);
-    db.defaults({ posts: [], users: [], settings: [], category: defaultCategories }).write()
+    db.defaults({ posts: [], users: [], settings: [],comments: [], category: defaultCategories }).write()
 const models = {
     User: createModel(db, 'users'),
     Post: createModel(db, 'posts'),

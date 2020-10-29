@@ -3,7 +3,7 @@ import typeDefs from './typeDefs'
 import resolvers from "./resolvers";
 import { LogDirective, FormatDateDirective} from "./directive";
 import { getUserFromToken, createToken} from "./auth";
-import db from "./database";
+import db from "./db";
 const server = new ApolloServer({
     typeDefs,
     resolvers,
@@ -11,14 +11,13 @@ const server = new ApolloServer({
         log: LogDirective,
         formatDate: FormatDateDirective
     },
-    context({req, connection}) {
-        const ctx = {...db}
+    async context({req, connection}) {
         if (connection) {
-            return {...ctx, ...connection.context}
+            return {...connection.context}
         }
 
         const token = req.headers.authorization
-        const user = getUserFromToken(token)
+        const user = await getUserFromToken(token)
         return {...db, user, createToken}
     },
     subscriptions: {

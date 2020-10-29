@@ -1,10 +1,15 @@
 import {authenticated, authorized} from "./auth";
 import {AuthenticationError, PubSub} from 'apollo-server'
-import {GraphQLUpload} from 'graphql-upload'
 import {ImageToken} from "./constants";
 import FormData from 'form-data';
 import {storeUpload} from "./utils";
 import {existsSync, unlinkSync} from 'fs'
+import User from "./models/User";
+import Setting from "./models/Setting";
+import Post from "./models/Post";
+import Comment from "./models/Comment";
+import {GraphQLUpload} from "graphql-upload";
+import fs from 'fs'
 
 const request  = require('request')
 
@@ -15,7 +20,7 @@ export default {
     Upload: GraphQLUpload,
     Query: {
         category: async (_, __, { ___, models }) => {
-            return models.Category.findAll()
+            return models.Category.findMany()
         },
         email: async (_, input , {___, models}) => {
             const user =  models.User.findOne(input)
@@ -25,82 +30,82 @@ export default {
         me: authenticated((_, __, {user}) => {
             return user
         }),
-        posts: async (_, __, {___, models}) => {
-            return models.Post.findMany()
+        posts: async (_, {input}) => {
+            return { data: await Post.find({}), total: 100 }
         },
 
-        post: authenticated((_, {id}, {user, models}) => {
-            return models.Post.findOne({id, author: user.id})
+        post: authenticated((_, {_id}, {user, models}) => {
+            return models.Post.findOne({_id, author: user._id})
         }),
 
         userSettings: authenticated((_, __, {user, models}) => {
-            return models.Settings.findOne({user: user.id})
+            return models.Settings.findOne({user: user._id})
         }),
         feed (_, __, {models}) {
             return models.Post.findMany()
         }
     },
     Mutation: {
-        likeAction:  authenticated((_, {target: id},{user, models})=> {
-            const post = models.Post.findOne({ id })
+        likeAction:  authenticated(async (_, {target: _id, type},{user, models})=> {
+            const post : any = await Post.findOne({ _id })
 
-            const index = post.likes.indexOf(user.id)
+            const index = post.likes.indexOf(user._id)
             if (index !== -1){
                 post.likes.splice(index, 1)
             } else {
-                post.likes.push(user.id)
+                post.likes.push(user._id)
             }
-            return models.Post.updateOne({ id }, post)
-            }),
-
-        updateSettings: authenticated((_, {input}, {user, models}) =>{
-            return models.Settings.updateOne({user: user.id}, input)
+            await Post.updateOne({_id}, post);
+            // await post.save()
+            return post
         }),
 
-        createPost: authenticated(async (_, {input}, {user: { id }, models}) => {
-            const { category } = input
-            const fullCategory = models.Category.findOne({ value: category })
-            const post = models.Post.createOne({...input, author: id, ...fullCategory, likes: [], views: 0, comments: []})
+        updateSettings: authenticated((_, {input}, {user}) =>{
+            return Setting.updateOne({user: user._id}, input)
+        }),
+
+        createPost: authenticated(async (_, {input}, {user: {_id}}) => {
+            const post = new Post({...input, author: _id, likes: [], views: 0, comments: [], createdAt: Date.now()})
+            await post.save()
             await pubsub.publish(NEW_POST, { newPost: post })
             return post
         }),
-        updateMe: authenticated((_, {input}, {user, models}) => {
-            return models.User.updateOne({id: user.id}, input)
-        }),
+        updateMe: authenticated(async (_, {input}, {user: { _id }}) =>
+            await User.updateOne({_id}, input)
+        ),
         // admin role
-        invite: authenticated(authorized('ADMIN', (_, {input}, {user}) => {
-            return {from: user.id, role: input.role, createdAt: Date.now(), email: input.email}
+        invite: authenticated(authorized('ADMIN', (_, {input}, {user: {_id}}) => {
+            return {from: _id, role: input.role, createdAt: Date.now(), email: input.email}
         })),
-        signUp(_, {input}, {models, createToken}) {
-            const existing = models.User.findOne({email: input.email}) || models.User.findOne({ name: input.name})
-            if (existing) {
+        async signUp(_, {input}, {__, createToken}) {
+            const existing = await User.find({email: input.email}) || await User.find({ name: input.name})
+            if ( existing.length !== 0) {
                 throw new AuthenticationError('Username or Email duplicated!')
             }
-
-            const user = models.User.createOne({...input, verified: false , role: 'MEMBER', avatar: input.name})
+            const user = new User({...input, verified: false , role: 'MEMBER', avatar: input.name})
+            await user.save()
+            await Setting.create({user: user._id, theme: 'DARK', emailNotifications: true, pushNotifications: true})
             const token = createToken(user)
-            models.Setting.createOne({user: user.id, theme: 'DARK', emailNotifications: true, pushNotifications: true})
             return {token, user}
         },
-        signIn(_, {input}, {models, createToken}) {
-            const user = models.User.findOne(input)
+        async signIn(_, {input}, {__, createToken}) {
+            const user = await User.findOne(input)
             if (!user) {
                 throw new AuthenticationError('wrong email + password combo')
             }
-
             const token = createToken(user)
 
             return {token, user}
         },
-        sendImageToCloud: authenticated(async (_, {file})  => {
+        sendImageToCloud: authenticated(async (_, {file: {file}})  => {
              let result
-             const { createReadStream, filename, mimetype } = await file
+            const { createReadStream, filename, mimetype } = await file
              // save to local first
-             const [{ path },  err] = await storeUpload({ stream: createReadStream(), mimetype, filename})
+            const [path, err]  = await storeUpload({ stream: createReadStream(), mimetype, filename})
                  .then(res => [res, null])
                  .catch(err => [null, err])
              const form = new FormData()
-             form.append('smfile', createReadStream())
+             form.append('smfile', fs.createReadStream(path))
              form.append('format', 'json')
              if (!err) {
                  return await new Promise(((resolve, reject) => {
@@ -124,9 +129,26 @@ export default {
              }
              return { message: 'Failed to save!', res: ''}
          }),
-        addComment: authenticated( (_,  { pid, content }, {user: {id, name}, models})  => {
-            const { comments } = models.Post.findOne({ id })
-            return models.Post.updateOne({id}, {comments: [...comments, content]})
+        addComment: authenticated( async (_, {input: { target: _id, content, type }}, {user: {_id: uid}})  => {
+            const comment: any = await new Comment({ content, comments: [], author: uid, type, createAt: Date.now()})
+            await comment.save()
+            if (type === 'POST') {
+                try {
+                    const { comments } : any  = await Post.findOne({ _id })
+                    await Post.updateOne({_id}, {comments: [...comments, comment._id]})
+                }catch (e) {
+                    throw e
+                }
+
+            } else {
+                try {
+                    const { comments }:any = await Comment.findOne({ _id })
+                    await Comment.updateOne({_id}, { comments: [...comments, comment._id]})
+                } catch (e) {
+                    throw e
+                }
+            }
+            return comment
         })
     },
     Subscription: {
@@ -136,28 +158,38 @@ export default {
     },
     User: {
         posts(root, _, {user, models}) {
-            if (root.id !== user.id) {
+            if (root._id !== user._id) {
                 throw new AuthenticationError('not your posts')
             }
 
-            return models.Post.findMany({author: root.id})
+            return Post.find({author: root._id})
         },
         settings(root, __, {user, models}) {
-            return models.Settings.findOne({id: root.settings, user: user.id})
+            return models.Settings.findOne({_id: root.settings, user: user._id})
         }
     },
     Settings: {
-        user(settings, _, {user, models}) {
-            return models.Settings.findOne({id: settings.id, user: user.id})
+        user(settings, _, {user}) {
+            return Setting.findOne({_id: settings._id, user: user._id})
         }
     },
     Post: {
-        author(post, _, {models}) {
-            return models.User.findOne({id: post.author})
+        async author(post) {
+            return User.findOne({_id: post.author});
         },
-        likes(post, _, {models}) {
-            const users = post.likes.map(id => models.User.findOne({id}))
-            return post.likes.map(id => models.User.findOne({id}))
+        async likes(post) {
+            return await post.likes.map( async (_id: any) => await User.findOne({_id}))
+        },
+        comments(post) {
+            return post.comments.map(async (_id: any) => await Comment.findOne({_id}))
+        }
+    },
+    Comment: {
+        async author(comment) {
+            return User.findOne({ _id: comment.author })
+        },
+        comments(comment) {
+            return comment.comments.map(async _id => await Comment.findOne({_id}))
         }
     }
 }

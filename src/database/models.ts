@@ -22,10 +22,33 @@ const createModel = (db: any, table: any) => ({
             .orderBy(['createdAt'], ['desc'])
             .value()
     },
-    findAll: () => {
-        return db.get(table)
-            .orderBy(['createdAt'], ['desc'])
-            .value()
+    findManyWithPagination(filter ?:any, limit = 10, offset = 0) {
+        if(!filter) {
+            const data = db.get(table)
+                .orderBy(['createdAt'], ['desc'])
+                .slice(offset, (offset+1)*limit)
+                .value()
+            const length = db.get(table)
+                .orderBy(['createdAt'], ['desc'])
+                .length
+            return {
+                data: data,
+                total: length
+            }
+        } else {
+            const data = db.get(table)
+                .find(filter)
+                .orderBy(['createdAt'], ['desc'])
+                .slice(offset, (offset+1)*limit)
+                .value()
+            const length = db.get(table)
+                .find(filter)
+                .orderBy(['createdAt'], ['desc'])
+                .value()
+            return {
+                data: data,
+                total: length}
+        }
     },
     updateOne: (filter: {}, update: any) => {
         const match = db.get(table)

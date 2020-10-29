@@ -18,9 +18,11 @@ export class CloseExtender extends PassThrough {
 export  const formatDate = (stamp, format) => dfnsFormat(stamp, format)
 
 export const storeUpload = async ({ stream, filename, mimetype }) => {
+  console.log('upload')
   mkdir("images", { recursive: true }, (err) => {
     if (err) throw err;
   });
+
   const id = shortid.generate();
   const path = `images/${id}-${filename}`;
 
@@ -28,7 +30,7 @@ export const storeUpload = async ({ stream, filename, mimetype }) => {
   return new Promise((resolve, reject) =>
       stream
           .pipe(createWriteStream(path))
-          .on("finish", () => resolve({ id, path, filename, mimetype }))
+          .on("finish", () => resolve(path))
           .on("error", reject)
   );
 };
