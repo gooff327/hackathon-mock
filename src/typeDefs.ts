@@ -53,16 +53,16 @@ export default gql`
     }
     type Post {
         _id: ID!
-        title: String
-        content: String
+        title: String!
+        content: String!
         images: [String]!
         createdAt: String! @formatDate
         updatedAt: String! @formatDate
         isPublic: Boolean!
         author: User!
-        likes: [User]
-        views: Int
-        comments: [Comment]
+        likes: [User]!
+        views: Int!
+        comments: [Comment]!
         category: Category!
     }
     type Category {
@@ -74,8 +74,18 @@ export default gql`
         author: User!
         type: CommentTarget!
         content: String!
-        comments: [Comment]
         createAt: String !@formatDate
+        comments: [Comment]!
+        to: User!
+    }
+    
+    type Reply {
+        _id: ID!
+        author: User!
+        type: CommentTarget!
+        content: String!
+        createAt: String !@formatDate
+        to: User
     }
 
     type Message {
@@ -130,8 +140,9 @@ export default gql`
     }
     input CommentInput {
         target: ID!
-        type: CommentTarget
-        content: String
+        type: CommentTarget!
+        content: String!
+        to: ID
     }
 
     input PostFilter {

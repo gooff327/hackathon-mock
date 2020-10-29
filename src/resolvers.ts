@@ -65,6 +65,7 @@ export default {
         }),
 
         createPost: authenticated(async (_, {input}, {user: {_id}}) => {
+            console.log('error')
             const post = new Post({...input, author: _id, likes: [], views: 0, comments: [], createdAt: Date.now()})
             await post.save()
             await pubsub.publish(NEW_POST, { newPost: post })
@@ -131,8 +132,8 @@ export default {
              }
              return { message: 'Failed to save!', res: ''}
          }),
-        addComment: authenticated( async (_, {input: { target: _id, content, type }}, {user: {_id: uid}})  => {
-            const comment: any = await new Comment({ content, comments: [], author: uid, type, createAt: Date.now()})
+        addComment: authenticated( async (_, {input: { target: _id, content, type, to }}, {user: {_id: uid}})  => {
+            const comment: any = await new Comment({ content, comments: [], author: uid, type, createAt: Date.now(), to })
             await comment.save()
             if (type === 'POST') {
                 try {
@@ -192,6 +193,9 @@ export default {
         },
         comments(comment) {
             return comment.comments.map(async _id => await Comment.findOne({_id}))
-        }
+        },
+        async to(comment) {
+            return User.findOne({ _id: comment.to })
+        },
     }
 }
