@@ -10,6 +10,7 @@ import Post from "./models/Post";
 import Comment from "./models/Comment";
 import {GraphQLUpload} from "graphql-upload";
 import fs from 'fs'
+import Category from "./models/Category";
 
 const request  = require('request')
 
@@ -20,7 +21,7 @@ export default {
     Upload: GraphQLUpload,
     Query: {
         category: async (_, __, { ___, models }) => {
-            return models.Category.findMany()
+            return Category.find({})
         },
         email: async (_, input , {___, models}) => {
             const user =  models.User.findOne(input)
@@ -47,6 +48,10 @@ export default {
         }
     },
     Mutation: {
+        addCategory: async (_, {input}) => {
+            await Category.insertMany(input)
+            return Category.find()
+        },
         likeAction:  authenticated(async (_, {target: _id, type},{user, models})=> {
             const post : any = await Post.findOne({ _id })
 

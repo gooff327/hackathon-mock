@@ -1,5 +1,4 @@
 import gql from 'graphql-tag'
-import {GraphQLUpload} from "graphql-upload";
 
 export default gql`
     directive @log(format: String) on FIELD_DEFINITION
@@ -158,6 +157,10 @@ export default gql`
         sortByDate: Boolean
         sortByDateReverse: Boolean
     }
+    input CategoryInput {
+        label: String!
+        value: String!
+    }
     
     type EmailStatus {
         email: String!
@@ -184,7 +187,9 @@ export default gql`
         res: String!    
     }
     scalar Image
+    
     type Mutation {
+        addCategory(input: [CategoryInput]!): [Category]!
         likeAction(target: ID!, type: LikeTarget): Post!
         sendImageToCloud(file: Image!): UploadResponse!
         updateSettings(input: UpdateSettingsInput!): Settings!
