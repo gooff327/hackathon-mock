@@ -32,14 +32,11 @@ export default {
             return user
         }),
         posts: async (_, {filter, pagination, rank}) => {
-            let category, keyword
-            let obj = {}
+            let f = {}
             if(filter) {
-                obj = { category: filter?.category, content: {$regex: filter?.keyword}}
-                console.log(obj)
+                f = { category: filter?.category, content: new RegExp(filter?.keyword), title: new RegExp(filter?.keyword)}
             }
-            const { } = filter
-            const {docs:data, hasNextPage} = await Post.paginate({}, pagination)
+            const {docs:data, hasNextPage} = await Post.paginate(f, pagination)
             return { data, hasNextPage }
         },
 
