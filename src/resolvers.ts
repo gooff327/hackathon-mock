@@ -97,14 +97,14 @@ export default {
             if ( existing.length !== 0) {
                 throw new AuthenticationError('Username or Email duplicated!')
             }
-            const user = new User({...input, verified: false , role: 'MEMBER', desc: '', avatar: input.name})
+            const user = new User({...input, verified: false , role: 'MEMBER', desc: '', avatar: input.name, createdAt: Date.now(), lastLoginAt: Date.now()})
             await user.save()
             await Setting.create({user: user._id, theme: 'DARK', emailNotifications: true, pushNotifications: true})
             const token = createToken(user)
             return {token, user}
         },
         async signIn(_, {input}, {__, createToken}) {
-            const user = await User.findOne(input)
+            const user = await User.findOneAndUpdate(input, { lastLoginAt: Date.now()})
             if (!user) {
                 throw new AuthenticationError('wrong email + password combo')
             }

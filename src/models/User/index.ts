@@ -9,7 +9,8 @@ const UserSchema = new Schema({
   createdAt: Number,
   lastLoginAt: Number,
   role: String,
-  password: String
+  password: String,
+  desc: String
 })
 
 const User = model('User', UserSchema)
