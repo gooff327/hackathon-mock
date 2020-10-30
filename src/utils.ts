@@ -15,7 +15,9 @@ export class CloseExtender extends PassThrough {
   }
 }
 
-export  const formatDate = (stamp, format) => dfnsFormat(stamp, format)
+export  const formatDate = (stamp, format) => {
+  return stamp
+}
 
 export const storeUpload = async ({ stream, filename, mimetype }) => {
   console.log('upload')

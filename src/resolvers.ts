@@ -39,7 +39,7 @@ export default {
             if(sortByDate) {
                 const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, {...pagination, sort: { 'createdAt': sortReverse ? -1: 1}})
                 return { data, hasNextPage, hasPrevPage }
-            } else {
+            } else if(sortByHot) {
                 const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, {...pagination, sort: { 'likes':  sortReverse ? -1: 1}})
                 return { data, hasNextPage, hasPrevPage }
             }
@@ -149,7 +149,6 @@ export default {
          }),
         addComment: authenticated( async (_, {input: { target: _id, content, type, to }}, {user: {_id: uid}})  => {
             const comment: any = new Comment({ content, comments: [], replies: [], author: uid, type, createdAt: Date.now(), to })
-            console.log(comment)
             await comment.save()
             if (type === 'POST') {
                 try {
