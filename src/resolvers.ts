@@ -3,13 +3,12 @@ import {AuthenticationError, PubSub} from 'apollo-server'
 import {ImageToken} from "./constants";
 import FormData from 'form-data';
 import {storeUpload} from "./utils";
-import {existsSync, unlinkSync} from 'fs'
+import fs, {existsSync, unlinkSync} from 'fs'
 import User from "./models/User";
 import Setting from "./models/Setting";
 import Post from "./models/Post";
 import Comment from "./models/Comment";
 import {GraphQLUpload} from "graphql-upload";
-import fs from 'fs'
 import Category from "./models/Category";
 
 const request  = require('request')
@@ -85,8 +84,10 @@ export default {
             await pubsub.publish(NEW_POST, { newPost: post })
             return post
         }),
-        updateMe: authenticated(async (_, {input}, {user: { _id }}) =>
-            await User.findOneAndUpdate({_id}, input)
+        updateMe: authenticated(async (_, {input}, {user: { _id }}) => {
+            await User.updateOne({_id}, input)
+            return User.findOne({_id})
+            }
         ),
         // admin role
         invite: authenticated(authorized('ADMIN', (_, {input}, {user: {_id}}) => {
@@ -193,6 +194,7 @@ export default {
     },
     Post: {
         async author(post) {
+            console.log(await  User.findOne({_id: post.author}))
             return User.findOne({_id: post.author});
         },
         async likes(post) {
