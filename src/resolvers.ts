@@ -86,7 +86,7 @@ export default {
             return post
         }),
         updateMe: authenticated(async (_, {input}, {user: { _id }}) =>
-            await User.updateOne({_id}, input)
+            await User.findOneAndUpdate({_id}, input)
         ),
         // admin role
         invite: authenticated(authorized('ADMIN', (_, {input}, {user: {_id}}) => {

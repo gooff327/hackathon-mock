@@ -197,7 +197,7 @@ export default gql`
         updateSettings(input: UpdateSettingsInput!): Settings!
         createPost(input: NewPostInput!): Post!
         addComment(input: CommentInput!): Comment!
-        updateMe(input: UpdateUserInput!): User
+        updateMe(input: UpdateUserInput!): User!
         invite(input: InviteInput!): Invite!
         signUp(input: SignUpInput!): AuthUser!
         signIn(input: SignInInput!): AuthUser!
