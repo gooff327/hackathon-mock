@@ -2,7 +2,7 @@ import gql from 'graphql-tag'
 
 export default gql`
     directive @log(format: String) on FIELD_DEFINITION
-    directive @formatDate(format: String = "d, MMM, yyyy") on FIELD_DEFINITION
+    directive @formatDate(format: String = "yyyy年MM月dd日 HH:MM") on FIELD_DEFINITION
     enum CommentTarget {
         POST
         COMMENT
@@ -36,6 +36,7 @@ export default gql`
     }
     type User {
         _id: ID!
+        desc: String!
         email: String!
         avatar: String
         name: String!
@@ -128,6 +129,7 @@ export default gql`
         category: String!
     }
     input UpdateUserInput {
+        desc: String
         email: String
         avatar: String
         verified: Boolean
@@ -152,9 +154,9 @@ export default gql`
         limit: Int!
     }
     input Rank {
-        rank: Boolean
+        sortReverse: Boolean
         sortByDate: Boolean
-        sortByDateReverse: Boolean
+        sortByHot: Boolean
     }
     input CategoryInput {
         label: String!

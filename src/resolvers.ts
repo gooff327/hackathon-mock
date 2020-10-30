@@ -20,7 +20,7 @@ const NEW_POST = 'NEW_POST'
 export default {
     Upload: GraphQLUpload,
     Query: {
-        category: async (_, __, { ___, models }) => {
+        category: async () => {
             return Category.find({})
         },
         email: async (_, input) => {
@@ -34,20 +34,26 @@ export default {
         posts: async (_, {filter, pagination, rank}) => {
             let f = {}
             if(filter) {
-                f = { category: filter?.category, content: new RegExp(filter?.keyword), title: new RegExp(filter?.keyword)}
+                f = { category: filter?.category ,$or: [ {content: new RegExp(filter?.keyword)}, {title: new RegExp(filter?.keyword)}]}
             }
-            const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, pagination)
-            return { data, hasNextPage, hasPrevPage }
+            const { sortReverse, sortByDate, sortByHot } = rank
+            if(sortByDate) {
+                const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, {...pagination, sort: { 'createdAt': sortReverse ? -1: 1}})
+                return { data, hasNextPage, hasPrevPage }
+            } else {
+                const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, {...pagination, sort: { 'likes':  sortReverse ? -1: 1}})
+                return { data, hasNextPage, hasPrevPage }
+            }
         },
 
-        post: authenticated(async (_, {id:_id}, {user, models}) => {
+        post: authenticated(async (_, {id:_id}) => {
             return Post.findOne({_id})
         }),
 
         userSettings: authenticated((_, __, {user, models}) => {
             return models.Settings.findOne({user: user._id})
         }),
-        feed (_, __, {models}) {
+        feed () {
             return Post.find()
         }
     },
@@ -66,7 +72,6 @@ export default {
                 post.likes.push(user._id)
             }
             await Post.updateOne({_id}, post);
-            // await post.save()
             return post
         }),
 
@@ -92,7 +97,7 @@ export default {
             if ( existing.length !== 0) {
                 throw new AuthenticationError('Username or Email duplicated!')
             }
-            const user = new User({...input, verified: false , role: 'MEMBER', avatar: input.name})
+            const user = new User({...input, verified: false , role: 'MEMBER', desc: '', avatar: input.name})
             await user.save()
             await Setting.create({user: user._id, theme: 'DARK', emailNotifications: true, pushNotifications: true})
             const token = createToken(user)
@@ -148,7 +153,7 @@ export default {
             if (type === 'POST') {
                 try {
                     const { comments } : any  = await Post.findOne({ _id })
-                    await Post.updateOne({_id}, {comments: [...comments, comment._id]})
+                    await Post.updateOne({_id}, {comments: [ comment._id, ...comments]})
                 }catch (e) {
                     throw e
                 }
@@ -156,7 +161,7 @@ export default {
             } else {
                 try {
                     const { replies }:any = await Comment.findOne({ _id })
-                    await Comment.updateOne({_id}, { replies: [...replies, comment._id]})
+                    await Comment.updateOne({_id}, { replies: [ comment._id, ...replies]})
                 } catch (e) {
                     throw e
                 }
@@ -194,7 +199,7 @@ export default {
             return await post.likes.map( async (_id: any) => await User.findOne({_id}))
         },
         comments(post) {
-            return post.comments.map(async (_id: any) => await Comment.findOne({_id}))
+            return post.comments.map(async (_id: any) => await Comment.findById(_id))
         },
         async category(post) {
             return Category.findOne({value: post.category});
