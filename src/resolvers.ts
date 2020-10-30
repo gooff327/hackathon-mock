@@ -23,8 +23,8 @@ export default {
         category: async (_, __, { ___, models }) => {
             return Category.find({})
         },
-        email: async (_, input , {___, models}) => {
-            const user =  models.User.findOne(input)
+        email: async (_, input) => {
+            const user =  await User.findOne(input)
             return { ...input, available: !!user}
         },
 
