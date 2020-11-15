@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dotenv from 'dotenv'
+import dotenv from  'dotenv'
 dotenv.config()
 
 const { MONGO_URL, MONGO_PASSWORD, MONGO_DB_NAME, MONGO_DB_USER} = process.env
