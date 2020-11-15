@@ -19,7 +19,6 @@
     "apollo-server": "^2.15.0",
     "date-fns": "^2.14.0",
     "dotenv": "^8.2.0",
-    "framer-motion": "^2.9.4",
     "fs-capacitor": "^6.2.0",
     "graphql-upload": "^11.0.0",
     "jsonwebtoken": "^8.5.1",
