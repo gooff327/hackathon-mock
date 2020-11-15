@@ -175,6 +175,7 @@ export default gql`
     }
 
     type Query {
+        hotPosts: [Post]!
         email(email: String!): EmailStatus!
         me: User!
         posts(filter: PostFilter, pagination: Pagination, rank: Rank): Posts!

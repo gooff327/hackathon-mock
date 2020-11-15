@@ -19,6 +19,15 @@ const NEW_POST = 'NEW_POST'
 export default {
     Upload: GraphQLUpload,
     Query: {
+        hotPosts: async () => {
+            return Post.aggregate([
+                {"$match": {"images.0": {"$exists": true}}},
+                {"$sort": { "createdAt": -1}},
+                {"$sort" : {"likes":-1}},
+                {"$sort" : {"comments": -1}},
+                {"$limit" : 5}
+                ])
+        },
         category: async () => {
             return Category.find({})
         },
@@ -40,14 +49,14 @@ export default {
                 const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, {...pagination, sort: { 'createdAt': sortReverse ? -1: 1}})
                 return { data, hasNextPage, hasPrevPage }
             } else if(sortByHot) {
-                const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, {...pagination, sort: { 'likes':  sortReverse ? -1: 1}})
+                const {docs:data, hasNextPage, hasPrevPage} = await Post.paginate(f, {...pagination, sort: { 'likes':  sortReverse ? 1: -1}})
                 return { data, hasNextPage, hasPrevPage }
             }
         },
 
-        post: authenticated(async (_, {id:_id}) => {
+        post: async (_, {id:_id}) => {
             return Post.findOne({_id})
-        }),
+        },
 
         userSettings: authenticated((_, __, {user, models}) => {
             return models.Settings.findOne({user: user._id})
@@ -199,7 +208,7 @@ export default {
         async likes(post) {
             return await post.likes.map( async (_id: any) => await User.findOne({_id}))
         },
-        comments(post) {
+        async comments(post) {
             return post.comments.map(async (_id: any) => await Comment.findById(_id))
         },
         async category(post) {

@@ -1,5 +1,11 @@
 import mongoose from 'mongoose'
-import {MongoURL} from "../constants";
+import dotenv from 'dotenv'
+dotenv.config()
+
+const { MONGO_URL, MONGO_PASSWORD, MONGO_DB_NAME, MONGO_DB_USER} = process.env
+const MongoURL  = `mongodb://${MONGO_DB_USER}:${MONGO_PASSWORD}@${MONGO_URL}/${MONGO_DB_NAME}`
+
+console.log(MongoURL)
 
 mongoose.connect(MongoURL, { useUnifiedTopology: true, useNewUrlParser: true });
 mongoose.Promise = global.Promise;
