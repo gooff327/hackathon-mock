@@ -133,24 +133,13 @@ export default {
              form.append('smfile', fs.createReadStream(path))
              form.append('format', 'json')
              if (!err) {
-                 return await new Promise(((resolve, reject) => {
-                     const req = request.post({
+                 return await new Promise(( async (resolve, reject) => {
+                     const [req, err] = await request.post({
                          url: 'https://sm.ms/api/v2/upload',
                          headers: {Authorization: ImageToken, ...form.getHeaders()}
-                     }, (err, response, body) => {
-                         if (existsSync(path)) {
-                             unlinkSync(path)
-                         }
-                         if (err) {
-                             result = {message: err, res: ''}
-                             reject(result)
-                         } else {
-                             let parsed = JSON.parse(body)
-                             console.log('body',JSON.parse(body))
-                             result = {message: 'success', res: parsed?.images||parsed?.data?.url}
-                             resolve(result)
-                         }
                      })
+                         .then(data => [data, null])
+                         .catch(err => [null, err])
                      form.pipe(req)
                  }))
              }

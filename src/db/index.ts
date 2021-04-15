@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose, {ConnectionOptions} from 'mongoose'
 import dotenv from  'dotenv'
 dotenv.config()
 
@@ -21,7 +21,7 @@ db.on('error', async function(error) {
 
 db.on('close', async function() {
   console.log('数据库断开，重新连接数据库')
-  await mongoose.connect(MongoURL, {server:{auto_reconnect:true}});
+  await mongoose.connect(MongoURL, {server:{auto_reconnect:true}} as ConnectionOptions);
 });
 
 export default db;

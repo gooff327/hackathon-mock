@@ -1,4 +1,3 @@
-import dfnsFormat from 'date-fns/format'
 import shortid from "shortid";
 import { createWriteStream, mkdir } from "fs";
 import { PassThrough } from 'stream';
@@ -20,7 +19,6 @@ export  const formatDate = (stamp, format) => {
 }
 
 export const storeUpload = async ({ stream, filename, mimetype }) => {
-  console.log('upload')
   mkdir("images", { recursive: true }, (err) => {
     if (err) throw err;
   });

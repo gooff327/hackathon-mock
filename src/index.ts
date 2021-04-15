@@ -3,7 +3,6 @@ import typeDefs from './typeDefs'
 import resolvers from "./resolvers";
 import { LogDirective, FormatDateDirective} from "./directive";
 import { getUserFromToken, createToken} from "./auth";
-console.log('1')
 import db from "./db";
 const server = new ApolloServer({
     typeDefs,
