@@ -11,9 +11,6 @@ import Comment from "./models/Comment";
 import {GraphQLUpload} from "graphql-upload";
 import Category from "./models/Category";
 
-const request  = require('request')
-
-
 const pubsub = new PubSub()
 const NEW_POST = 'NEW_POST'
 export default {
@@ -29,7 +26,7 @@ export default {
                 ])
         },
         category: async () => {
-            return Category.find({})
+            return Category.find()
         },
         email: async (_, input) => {
             const user =  await User.findOne(input)
@@ -126,24 +123,14 @@ export default {
              let result
             const { createReadStream, filename, mimetype } = await file
              // save to local first
-            const [path, err]  = await storeUpload({ stream: createReadStream(), mimetype, filename})
+            const [path, err]  = await storeUpload({ stream: createReadStream(), filename})
                  .then(res => [res, null])
                  .catch(err => [null, err])
-             const form = new FormData()
-             form.append('smfile', fs.createReadStream(path))
-             form.append('format', 'json')
-             if (!err) {
-                 return await new Promise(( async (resolve, reject) => {
-                     const [req, err] = await request.post({
-                         url: 'https://sm.ms/api/v2/upload',
-                         headers: {Authorization: ImageToken, ...form.getHeaders()}
-                     })
-                         .then(data => [data, null])
-                         .catch(err => [null, err])
-                     form.pipe(req)
-                 }))
-             }
-             return { message: 'Failed to save!', res: ''}
+            console.info(path, err)
+            if(err) {
+                return { message: 'Failed to save!', res: ''}
+            }
+            return  { message: 'Upload success', res: path }
          }),
         addComment: authenticated( async (_, {input: { target: _id, content, type, to }}, {user: {_id: uid}})  => {
             const comment: any = new Comment({ content, comments: [], replies: [], author: uid, type, createdAt: Date.now(), to })
